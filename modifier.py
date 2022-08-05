@@ -18,14 +18,14 @@ def changename(f):
         else:
             res = f()
         return res
-
     name.__name__ = cname
+    print(2)
     return name
 
 class Modifier:
 
     def __init__(self):
-        self._data_type = [list, tuple, dict, np]
+        self._data_type = [list, tuple, dict, int ]
 
     @changename
     def isdata(self, sample=None):
@@ -37,9 +37,9 @@ class Modifier:
         """
         for t in self._data_type:
             if isinstance(sample, t):
-                return  t
+                return t
         return None
 
 if __name__ == "__main__":
     m = Modifier()
-    print(m.isdata([]), np.array(a))
+    print(m.isdata.__name__)
