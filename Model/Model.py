@@ -8,25 +8,25 @@ class Model:
 
     def __new__(cls, *args, **kwargs):
 
-        return super(Model, cls).__new__(*args, **kwargs)
+        return super(Model, cls).__new__(cls, *args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         pass
 
-    def build(self):
+    def build(self, *args, **kwargs):
         pass
 
-    def model(self):
+    def model(self, *args, **kwargs):
         pass
 
-    def fit(self,x ,y):
+    def fit(self, *args, **kwargs):
         pass
 
-    def predict(self, x):
+    def predict(self, *args, **kwargs):
         pass
 
-    def loss(self):
+    def loss(self, *args, **kwargs):
         pass
 
-    def test(self):
+    def test(self, *args, **kwargs):
         pass

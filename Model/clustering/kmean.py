@@ -17,7 +17,7 @@ class KMean(Model):
         self.__cluster_center = None   # Model center
         self.__SSE = 0.0         # sum of squared error
 
-    def fit(self, sample, label, cluster_amount=3):
+    def model(self, sample, label, cluster_amount=3):
         """
         fit model
         :param sample: sample dataset
