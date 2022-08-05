@@ -8,17 +8,21 @@ import numpy as np
 import math
 import os
 
-class KMean:
+from Model.Model import Model
+
+class KMean(Model):
 
     def __init__(self):
+        super(KMean, self).__init__()
         self.__cluster_center = None   # Model center
         self.__SSE = 0.0         # sum of squared error
 
-    def Train(self, sample, label, cls=3):
+    def model(self, sample, label, cluster_amount=3):
         """
-        train model
+        fit model
         :param sample: sample dataset
         :param label: label of sample
-        :param cls: Model amount
+        :param cluster_amount: Model amount
         :return:
         """
+        pass
