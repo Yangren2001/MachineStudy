@@ -28,5 +28,11 @@ class Model:
     def loss(self, *args, **kwargs):
         pass
 
+    def save(self, *args, **kwargs):
+        pass
+
+    def load(self, *args, **kwargs):
+        pass
+
     def test(self, *args, **kwargs):
         pass

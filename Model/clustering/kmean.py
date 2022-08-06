@@ -9,6 +9,7 @@ import math
 import os
 
 from Model.Model import Model
+from utils.modifier import Modifier
 
 class KMean(Model):
 
@@ -17,9 +18,18 @@ class KMean(Model):
         self.__cluster_center = None   # Model center
         self.__SSE = 0.0         # sum of squared error
 
+    def build(self, feature, label):
+        """
+        构建模型
+        :param feature: 特征集
+        :param label: 标签集
+        :return:
+        """
+        pass
+
     def model(self, sample, label, cluster_amount=3):
         """
-        fit model
+        model
         :param sample: sample dataset
         :param label: label of sample
         :param cluster_amount: Model amount
