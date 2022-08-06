@@ -9,7 +9,7 @@ import math
 import os
 
 from Model.Model import Model
-from utils.modifier import Modifier
+from utils.utils import *
 
 class KMean(Model):
 
@@ -25,7 +25,8 @@ class KMean(Model):
         :param label: 标签集
         :return:
         """
-        pass
+        if isdata(feature) is not np.ndarray:
+            feature = np.array(feature)   # 转换为矩阵
 
     def model(self, sample, label, cluster_amount=3):
         """
