@@ -34,8 +34,6 @@ class KMean(Model):
         if isdata(feature) is not np.ndarray:
             feature = np.array(feature)   # 转换为矩阵
         self.__feature_shape = feature.shape
-        # 初始化模型，簇中心初始化
-        self.init_cluster_center()
         # 构建模型逻辑
         self.model(feature, label, self.__cluster_num)
 
@@ -47,7 +45,9 @@ class KMean(Model):
         :param cluster_amount: Model amount
         :return:
         """
-        pass
+        # 初始化模型，簇中心初始化
+        self.init_cluster_center()
+
 
     def init_cluster_center(self):
         """
@@ -66,3 +66,12 @@ class KMean(Model):
         :return:
         """
         np.random.seed(num)
+
+    def loss(self, x1, x2):
+        """
+        计算损失函数
+        :param x1:
+        :param x2:
+        :return: loss values
+        """
+        return np.sqrt(np.sum(np.square(np.subtract(x1, x2))))
