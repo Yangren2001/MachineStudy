@@ -7,18 +7,22 @@
 import numpy as np
 import math
 import os
+import tqdm as tq
+import logging
 
 from Model.Model import Model
 from utils.utils import *
 
 class KMean(Model):
 
-    def __init__(self, cluster_num, init_cluster_center=None):
+    def __init__(self, cluster_num=3, init_cluster_center=None):
         super(KMean, self).__init__()
         self.__cluster_center = []   # Model center
         self.__SSE = 0.0         # sum of squared error
+        self.__OLD_SSE = 0.0
         self.__cluster_num = cluster_num   # 聚类数
         self.__init_cluster_center = init_cluster_center
+        self.__history = {}   # 记录损失和指标
         if init_cluster_center is not None:
             self.__init_flag = False
         else:
@@ -44,12 +48,39 @@ class KMean(Model):
         :return:
         """
         # 初始化模型，簇中心初始化
-        self.init_cluster_center()
-        labels = []   # 聚类标签集
-        for i in range(self.__cluster_num):  # 遍历簇中心
-            for j in range(self.__feature_shape[0]):  # 遍历每一个样本
-                loss = self.loss(sample[j, :], self.__cluster_center[i])
+        if self.__init_flag:
+            self.init_cluster_center()
+        while True:
+            labels = []   # 聚类标签集
+            for i in range(self.__feature_shape[0]):  # 遍历每一个样本
+                min_dist = (np.inf, 0)  # (dist, label)
+                for j in range(self.__cluster_num):  # 遍历簇中心
+                    dist = self.loss(sample[i, :], self.__cluster_center[j])
+                    if dist < min_dist:
+                        min_dist = (dist, j)
+                labels.append(min_dist[1])
+                self.__SSE += min_dist[0]
 
+            # 调整模型
+            if self.__SSE == self.__OLD_SSE:
+                return
+            else:
+                for i in range(self.__cluster_num):
+                    self.__cluster_center[i] = np.mean(sample[np.nonzero(labels == i)[0], :])
+            self.history = ("loss", [self.__SSE])
+
+    @property
+    def history(self):
+        return self.__history
+
+    @history.setter
+    def history(self, v):
+        if isinstance(v, tuple) and isinstance(v[1], tuple):
+            raise TypeError("数据应该为(key, values(list))!")
+        if self.__history.get(v[0]) is None:
+            self.__history[v[0]] = v[1]
+        else:
+            self.__history[v[0]] += v[1]
 
     def init_cluster_center(self):
         """
