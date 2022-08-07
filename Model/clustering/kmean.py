@@ -24,29 +24,31 @@ class KMean(Model):
         else:
             self.__init_flag = True
 
-    def build(self, feature, label):
+    def build(self, feature):
         """
         构建模型
         :param feature: 特征集
-        :param label: 标签集
         :return:
         """
         if isdata(feature) is not np.ndarray:
             feature = np.array(feature)   # 转换为矩阵
         self.__feature_shape = feature.shape
         # 构建模型逻辑
-        self.model(feature, label, self.__cluster_num)
+        self.model(feature, self.__cluster_num)
 
-    def model(self, sample, label, cluster_amount=3):
+    def model(self, sample, cluster_amount=3):
         """
         model
         :param sample: sample dataset
-        :param label: label of sample
         :param cluster_amount: Model amount
         :return:
         """
         # 初始化模型，簇中心初始化
         self.init_cluster_center()
+        labels = []   # 聚类标签集
+        for i in range(self.__cluster_num):  # 遍历簇中心
+            for j in range(self.__feature_shape[0]):  # 遍历每一个样本
+                loss = self.loss(sample[j, :], self.__cluster_center[i])
 
 
     def init_cluster_center(self):
@@ -55,7 +57,7 @@ class KMean(Model):
         :return:
         """
         if self.__init_flag:
-            self.__cluster_center = [np.random.random(self.__feature_shape) for i in range(self.__cluster_num)]
+            self.__cluster_center = [np.random.random(self.__feature_shape[1:]) for i in range(self.__cluster_num)]
         else:
             pass
 
