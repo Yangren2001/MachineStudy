@@ -15,10 +15,13 @@ class Logging:
     def __init__(self, fun):
         self.__logging = logging.getLogger()  # init
         self.__logging.setLevel(logging.INFO)
-        self.__sh = logging.StreamHandler(stream=sys.stdout)
+        # self.__sh = logging.StreamHandler(stream=sys.stdout)
+        # self.__sh.setLevel(logging.INFO)
         self.res = fun
+        print(12)
 
     def __call__(self,*arg, **kwargs):
+        logging.info("{}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
         if kwargs or arg:
             return self.res(*arg, **kwargs)
         else:
@@ -85,8 +88,9 @@ class Modifier:
 
 
 if __name__ == "__main__":
-    @Modifier.abc(Modifier)
+    @Logging
     def b():
         print(1)
     b()
-    print(b.__name__)
+
+    # print(b.__name__)
