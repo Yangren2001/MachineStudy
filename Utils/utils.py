@@ -19,6 +19,20 @@ def isdata(data):
         return t
     return None
 
+def GetDictIndex(d: dict, values):
+    """
+    获取字典索引
+    :param d: 字典
+    :param values:值
+    :return:
+    """
+    for kv in d.items():
+        if values in kv:
+            return kv[0]
+    raise ValueError("values '{}' not exists dict".format(values))
+
+
+
 if __name__ == "__main__":
     t = isdata(np.array(1))
     print(t is np.ndarray)

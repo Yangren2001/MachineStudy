@@ -3,6 +3,8 @@
 """
    @describe: 修饰器
 """
+
+
 import numpy as np
 import os
 import logging
@@ -10,18 +12,71 @@ import tqdm
 import sys
 import time
 
-class Logging:
+from Utils.utils import *
 
-    def __init__(self, fun):
+class Logging:
+    __msg: str
+    __level: int
+    __loglevel_index_dict: dict
+
+    def __init__(self, mth):
+        """
+
+        :param mth: class or function
+        """
+        loglevel = ["debug","info","warning","error","critical"]
+        self.__loglevel_index_dict = dict(zip(loglevel, [i for i in range(len(loglevel))]))
         self.__logging = logging.getLogger()  # init
         self.__logging.setLevel(logging.INFO)
         # self.__sh = logging.StreamHandler(stream=sys.stdout)
         # self.__sh.setLevel(logging.INFO)
-        self.res = fun
-        print(12)
+        self.res = mth
+        self.__msg = ""
 
-    def __call__(self,*arg, **kwargs):
-        logging.info("{}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
+    def setLogLevel(self, level:logging.INFO):
+        """
+        设置日志输出等级
+        :param level: logging
+        :return:
+        """
+        self.__logging.setLevel(level)
+
+    @property
+    def __msg_level_dict(self):
+        return {
+            0: logging.debug,
+            1: logging.info,
+            2: logging.warning,
+            3: logging.error,
+            4: logging.critical,
+        }
+
+    @__msg_level_dict.getter
+    def msg_level_dict(self, value):
+        return self.__msg_level_dict[value]
+
+
+    def recv(self, msg="", level="info"):
+        """
+        接收消息
+        :param msg:
+        :param level:debug,info,warning,error,critical
+        :return:
+        """
+        self.__level = self.__loglevel_index_dict[level]
+        self.__msg = "{} ".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + msg
+        self.send(self.__msg)
+
+    def send(self, msg):
+        self.__msg_level_dict[self.__level](msg)
+
+    def __call__(self, *arg, **kwargs):
+        if isinstance(self.res, type):   # 判断函数是类
+            pass
+        elif callable(self.res):
+            pass
+        else:
+            raise TypeError("mth 参数错误")
         if kwargs or arg:
             return self.res(*arg, **kwargs)
         else:
@@ -90,7 +145,7 @@ class Modifier:
 if __name__ == "__main__":
     @Logging
     def b():
+        b.recv("aaaaaa")
         print(1)
     b()
-
     # print(b.__name__)

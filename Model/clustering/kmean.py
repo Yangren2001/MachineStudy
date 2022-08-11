@@ -11,7 +11,7 @@ import tqdm as tq
 import logging
 
 from Model.Model import Model
-from utils.utils import *
+from Utils.utils import *
 
 class KMean(Model):
 
