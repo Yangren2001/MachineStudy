@@ -12,8 +12,12 @@ import logging
 
 from Model.Model import Model
 from Utils.utils import *
+from Utils.modifier import Logging
+
 
 class KMean(Model):
+    def __new__(cls, *args, **kwargs):
+        return super(KMean, cls).__new__(cls, *args, **kwargs)
 
     def __init__(self, cluster_num=3, init_cluster_center=None):
         super(KMean, self).__init__()

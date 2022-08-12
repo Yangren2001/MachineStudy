@@ -14,6 +14,53 @@ import time
 
 from Utils.utils import *
 
+
+
+class Modifier:
+
+    def __new__(cls, *args, **kwargs):
+        return super(Modifier, cls).__new__(cls, *args, **kwargs)
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def changename(fun):
+        """更改函数名"""
+        cname = fun.__name__
+        c_doc = fun.__doc__
+        def change(f):
+            def name(*arg, **kwargs):
+                res = None
+                if kwargs or arg:
+                    res = f(*arg, **kwargs)
+                else:
+                    res = f()
+                return res
+
+            name.__name__ = cname
+            name.__doc__ = c_doc
+            return name
+        return change
+
+    @staticmethod
+    def changeFunName(f):
+        """更改函数名"""
+
+        cname = f.__name__
+        c_doc = f.__doc__
+        def name(*arg, **kwargs):
+            res = None
+            if kwargs or arg:
+                res = f(*arg, **kwargs)
+            else:
+                res = f()
+            return res
+
+        name.__name__ = cname
+        name.__doc__ = c_doc
+        return name
+
 class Logging:
     __msg: str
     __level: int
@@ -70,76 +117,21 @@ class Logging:
     def send(self, msg):
         self.__msg_level_dict[self.__level](msg)
 
-    def __call__(self, *arg, **kwargs):
-        if isinstance(self.res, type):   # 判断函数是类
-            pass
-        elif callable(self.res):
-            pass
-        else:
-            raise TypeError("mth 参数错误")
-        if kwargs or arg:
-            return self.res(*arg, **kwargs)
-        else:
-            return self.res()
 
-class Modifier:
-
-    def __new__(cls, *args, **kwargs):
-        return super(Modifier, cls).__new__(cls, *args, **kwargs)
-
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def changename(fun):
-        """更改函数名"""
-        cname = fun.__name__
-        c_doc = fun.__doc__
-        def change(f):
-            def name(*arg, **kwargs):
-                res = None
-                if kwargs or arg:
-                    res = f(*arg, **kwargs)
-                else:
-                    res = f()
-                return res
-
-            name.__name__ = cname
-            name.__doc__ = c_doc
-            return name
-        return change
-
-    @staticmethod
-    def changeFunName(f):
-        """更改函数名"""
-
-        cname = f.__name__
-        c_doc = f.__doc__
-        def name(*arg, **kwargs):
-            res = None
-            if kwargs or arg:
-                res = f(*arg, **kwargs)
+    def __call__(self):
+        def wrap(*arg, **kwargs):
+            if isinstance(self.res, type):   # 判断函数是类
+                pass
+            elif callable(self.res):
+                pass
             else:
-                res = f()
-            return res
-
-        name.__name__ = cname
-        name.__doc__ = c_doc
-        return name
-
-    @classmethod
-    def abc(cls, a):
-        print(cls, a)
-        def r(res):
-            print(res)
-            @Modifier.changename(res)
-            def wrap(*arg, **kwargs):
-                if kwargs or arg:
-                    return res(*arg, **kwargs)
-                else:
-                    return res()
-            return wrap
-        return r
+                raise TypeError("mth 参数错误")
+            if kwargs or arg:
+                return self.res(*arg, **kwargs)
+            else:
+                return self.res()
+        wrap.__name__ = self.res.__name__
+        return wrap
 
 
 if __name__ == "__main__":
@@ -148,4 +140,4 @@ if __name__ == "__main__":
         b.recv("aaaaaa")
         print(1)
     b()
-    # print(b.__name__)
+    print(b.__name__)
