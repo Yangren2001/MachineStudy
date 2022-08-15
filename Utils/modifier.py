@@ -4,7 +4,6 @@
    @describe: 修饰器
 """
 
-
 import numpy as np
 import os
 import logging
@@ -15,8 +14,39 @@ import time
 from Utils.utils import *
 
 
+class ModifierType:
+    __this = None        # 单例模式
+    res = None
 
-class Modifier:
+    def __new__(cls, *args, **kwargs):
+        if cls.__this is None:
+            print(1)
+            cls.__this = super(ModifierType, cls).__new__(cls, *args, **kwargs)
+        return cls.__this
+
+    def __init__(self, fun):
+        self.res = fun
+
+    @staticmethod
+    def temple(*args, **kwargs):
+        """
+        修饰器模板
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        if kwargs or args:
+            return ModifierType.res(*args, **kwargs)
+        else:
+            return ModifierType.res()
+
+    @staticmethod
+    def setFun(fun):
+        ModifierType.res = fun
+
+
+
+class Modifier(ModifierType):
 
     def __new__(cls, *args, **kwargs):
         return super(Modifier, cls).__new__(cls, *args, **kwargs)
@@ -30,14 +60,8 @@ class Modifier:
         cname = fun.__name__
         c_doc = fun.__doc__
         def change(f):
-            def name(*arg, **kwargs):
-                res = None
-                if kwargs or arg:
-                    res = f(*arg, **kwargs)
-                else:
-                    res = f()
-                return res
-
+            ModifierType.setFun(f)
+            name = ModifierType.temple
             name.__name__ = cname
             name.__doc__ = c_doc
             return name
@@ -49,14 +73,8 @@ class Modifier:
 
         cname = f.__name__
         c_doc = f.__doc__
-        def name(*arg, **kwargs):
-            res = None
-            if kwargs or arg:
-                res = f(*arg, **kwargs)
-            else:
-                res = f()
-            return res
-
+        ModifierType.setFun(f)
+        name = ModifierType.temple
         name.__name__ = cname
         name.__doc__ = c_doc
         return name
@@ -117,7 +135,6 @@ class Logging:
     def send(self, msg):
         self.__msg_level_dict[self.__level](msg)
 
-
     def __call__(self):
         def wrap(*arg, **kwargs):
             if isinstance(self.res, type):   # 判断函数是类
@@ -135,9 +152,9 @@ class Logging:
 
 
 if __name__ == "__main__":
-    @Logging
+    @Modifier.changeFunName
     def b():
-        b.recv("aaaaaa")
+        print(b)
         print(1)
     b()
     print(b.__name__)
