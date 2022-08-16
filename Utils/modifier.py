@@ -11,16 +11,20 @@ import tqdm
 import sys
 import time
 
+from copy import deepcopy
+
 from Utils.utils import *
 
 
 class ModifierType:
+    """
+    修饰器元类
+    """
     __this = None        # 单例模式
     res = None
 
     def __new__(cls, *args, **kwargs):
         if cls.__this is None:
-            print(1)
             cls.__this = super(ModifierType, cls).__new__(cls, *args, **kwargs)
         return cls.__this
 
@@ -44,40 +48,24 @@ class ModifierType:
     def setFun(fun):
         ModifierType.res = fun
 
-
-
-class Modifier(ModifierType):
-
-    def __new__(cls, *args, **kwargs):
-        return super(Modifier, cls).__new__(cls, *args, **kwargs)
-
-    def __init__(self):
-        pass
-
     @staticmethod
-    def changename(fun):
-        """更改函数名"""
-        cname = fun.__name__
-        c_doc = fun.__doc__
-        def change(f):
-            ModifierType.setFun(f)
-            name = ModifierType.temple
-            name.__name__ = cname
-            name.__doc__ = c_doc
-            return name
-        return change
+    def createModifierFun(fun, f=None, *args, **kwargs):
+        """
+        创建一个修饰器功能函数
+        :param fun: 被修饰函数
+        :param f: 修饰器功能函数
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        assert callable(fun)
+        if f is None:
+            fun.__call__ = ModifierType.temple.__call__
+        else:
+            fun.__call__ = f.__call__
+        return fun
 
-    @staticmethod
-    def changeFunName(f):
-        """更改函数名"""
 
-        cname = f.__name__
-        c_doc = f.__doc__
-        ModifierType.setFun(f)
-        name = ModifierType.temple
-        name.__name__ = cname
-        name.__doc__ = c_doc
-        return name
 
 class Logging:
     __msg: str
@@ -137,6 +125,7 @@ class Logging:
 
     def __call__(self):
         def wrap(*arg, **kwargs):
+            print(11)
             if isinstance(self.res, type):   # 判断函数是类
                 pass
             elif callable(self.res):
@@ -147,14 +136,15 @@ class Logging:
                 return self.res(*arg, **kwargs)
             else:
                 return self.res()
-        wrap.__name__ = self.res.__name__
-        return wrap
+        f = deepcopy(self.res)
+        f.__call__ = wrap.__call__
+        f()
 
 
 if __name__ == "__main__":
-    @Modifier.changeFunName
+    @Logging
     def b():
         print(b)
         print(1)
-    b()
-    print(b.__name__)
+    x = b()
+    print(x)
