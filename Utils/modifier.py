@@ -12,7 +12,6 @@ import sys
 import time
 
 from copy import deepcopy
-
 from Utils.utils import *
 
 
@@ -65,12 +64,24 @@ class ModifierType:
             fun.__call__ = f.__call__
         return fun
 
-
-
 class Logging:
     __msg: str
     __level: int
     __loglevel_index_dict: dict
+    __this = None
+
+    def __new__(cls, *args, **kwargs):
+        cls.__this = super(Logging, cls).__new__(cls)
+        try:
+            fun = args[0]
+        except IndexError:
+            raise ValueError("没有发现参数*args")
+        if IsFunction(fun) is not None:
+            cls.__init__(cls.__this, fun)
+            fun.__modifier__ = cls.__this
+            return fun
+        else:
+            raise TypeError("被修饰对象类型错误")
 
     def __init__(self, mth):
         """
@@ -123,12 +134,10 @@ class Logging:
     def send(self, msg):
         self.__msg_level_dict[self.__level](msg)
 
-    def __call__(self):
+    def __call__(self, *args, **kwargs):
         def wrap(*arg, **kwargs):
             print(11)
-            if isinstance(self.res, type):   # 判断函数是类
-                pass
-            elif callable(self.res):
+            if IsFunction(self.res) is not None:
                 pass
             else:
                 raise TypeError("mth 参数错误")
@@ -136,9 +145,7 @@ class Logging:
                 return self.res(*arg, **kwargs)
             else:
                 return self.res()
-        f = deepcopy(self.res)
-        f.__call__ = wrap.__call__
-        f()
+        return wrap(*args, **kwargs)
 
 
 if __name__ == "__main__":
@@ -147,4 +154,4 @@ if __name__ == "__main__":
         print(b)
         print(1)
     x = b()
-    print(x)
+    # print(b)

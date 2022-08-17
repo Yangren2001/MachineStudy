@@ -19,6 +19,19 @@ def isdata(data):
         return t
     return None
 
+def IsFunction(obj:object):
+    """
+    判断是否为函数
+    :param obj:
+    :return: false: 类
+    """
+    if isinstance(obj, type):  # 判断函数是类
+        return False
+    elif callable(obj):
+        return True
+    else:
+        return None
+
 def GetDictIndex(d: dict, values):
     """
     获取字典索引
