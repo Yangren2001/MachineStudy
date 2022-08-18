@@ -23,7 +23,7 @@ class KMean(Model):
         super(KMean, self).__init__()
         self.__cluster_center = []   # Model center
         self.__SSE = 0.0         # sum of squared error
-        self.__OLD_SSE = 0.0
+        self.__OLD_SSE = np.inf
         self.__cluster_num = cluster_num   # 聚类数
         self.__init_cluster_center = init_cluster_center
         self.__history = {}   # 记录损失和指标
@@ -44,6 +44,7 @@ class KMean(Model):
         # 构建模型逻辑
         self.model(feature, self.__cluster_num)
 
+    @Logging
     def model(self, sample, cluster_amount=3):
         """
         model
@@ -54,24 +55,35 @@ class KMean(Model):
         # 初始化模型，簇中心初始化
         if self.__init_flag:
             self.init_cluster_center()
+        log_obj = self.model.modifier
+        index_ = 1
         while True:
             labels = []   # 聚类标签集
+            self.__SSE = 0.0
             for i in range(self.__feature_shape[0]):  # 遍历每一个样本
                 min_dist = (np.inf, 0)  # (dist, label)
                 for j in range(self.__cluster_num):  # 遍历簇中心
                     dist = self.loss(sample[i, :], self.__cluster_center[j])
-                    if dist < min_dist:
+                    if dist < min_dist[0]:
                         min_dist = (dist, j)
                 labels.append(min_dist[1])
                 self.__SSE += min_dist[0]
 
+            log_obj.recv(msg="epoch {}:SSE: {}".format(index_, self.__SSE), fm="", old_flag=True, level="info")
+            index_ += 1
             # 调整模型
-            if self.__SSE == self.__OLD_SSE:
+            if self.__SSE >= self.__OLD_SSE:
                 return
             else:
+                self.__OLD_SSE = self.__SSE
                 for i in range(self.__cluster_num):
-                    self.__cluster_center[i] = np.mean(sample[np.nonzero(labels == i)[0], :])
+                    m = np.mean(sample[np.nonzero(np.array(labels) == i),:], axis=1)
+                    if np.any(np.isnan(m)):
+                        continue
+                    self.__cluster_center[i] = m
+            print(self.__cluster_center)
             self.history = ("loss", [self.__SSE])
+            self.history = ("labels", [labels])
 
     @property
     def history(self):
@@ -79,7 +91,7 @@ class KMean(Model):
 
     @history.setter
     def history(self, v):
-        if isinstance(v, tuple) and isinstance(v[1], tuple):
+        if not (isinstance(v, tuple) and isinstance(v[1], list)):
             raise TypeError("数据应该为(key, values(list))!")
         if self.__history.get(v[0]) is None:
             self.__history[v[0]] = v[1]
@@ -92,7 +104,7 @@ class KMean(Model):
         :return:
         """
         if self.__init_flag:
-            self.__cluster_center = [np.random.random(self.__feature_shape[1:]) for i in range(self.__cluster_num)]
+            self.__cluster_center = [np.random.random((1, *self.__feature_shape[1:])) for i in range(self.__cluster_num)]
         else:
             pass
 
@@ -112,3 +124,7 @@ class KMean(Model):
         :return: loss values
         """
         return np.sqrt(np.sum(np.square(np.subtract(x1, x2))))
+
+    def fit(self, x):
+        self.build(x)
+        return self.__history

@@ -4,7 +4,7 @@
     @describe: 全局功能
 """
 import numpy as np
-
+import tqdm
 import config.data_conf as d_conf
 
 def isdata(data):

@@ -13,6 +13,7 @@ import time
 
 from copy import deepcopy
 from Utils.utils import *
+from config.data_conf import WRAPPER_UPDATES, WRAPPER_ASSIGNMENTS
 
 
 class ModifierType:
@@ -23,12 +24,22 @@ class ModifierType:
     res = None
 
     def __new__(cls, *args, **kwargs):
-        if cls.__this is None:
-            cls.__this = super(ModifierType, cls).__new__(cls, *args, **kwargs)
-        return cls.__this
+        cls.__this = super(ModifierType, cls).__new__(cls)
+        try:
+            fun = args[0]
+        except IndexError:
+            raise ValueError("没有发现参数*args")
+        if IsFunction(fun) is not None:
+            cls.__this.__init__(fun)
+            return cls.__this.__call__()
+        else:
+            raise TypeError("被修饰对象类型错误")
 
     def __init__(self, fun):
         self.res = fun
+
+    def __call__(self, *args, **kwargs):
+        return self.__this
 
     @staticmethod
     def temple(*args, **kwargs):
@@ -59,42 +70,52 @@ class ModifierType:
         """
         assert callable(fun)
         if f is None:
-            fun.__call__ = ModifierType.temple.__call__
-        else:
-            fun.__call__ = f.__call__
-        return fun
+            f = ModifierType.temple
+        for attr in WRAPPER_ASSIGNMENTS:
+            try:
+                value = getattr(fun, attr)
+            except AttributeError:
+                pass
+            else:
+                setattr(f, attr, value)
+        for attr in WRAPPER_UPDATES:
+            getattr(f, attr).update(getattr(fun, attr, {}))
+        return f
 
-class Logging:
+    @staticmethod
+    def createModifierClassFun(obj, fun, f=None, *args, **kwargs):
+        """
+            创建一个修饰器功能函数
+            :param fun: 被修饰函数
+            :param f: 修饰器功能函数
+            :param args:
+            :param kwargs:
+            :return:
+        """
+        rf = ModifierType.createModifierFun(fun, f, *args, **kwargs)
+        rf.modifier = obj
+        return rf
+
+class Logging(ModifierType):
     __msg: str
     __level: int
     __loglevel_index_dict: dict
     __this = None
 
     def __new__(cls, *args, **kwargs):
-        cls.__this = super(Logging, cls).__new__(cls)
-        try:
-            fun = args[0]
-        except IndexError:
-            raise ValueError("没有发现参数*args")
-        if IsFunction(fun) is not None:
-            cls.__init__(cls.__this, fun)
-            fun.__modifier__ = cls.__this
-            return fun
-        else:
-            raise TypeError("被修饰对象类型错误")
+        return super(Logging, cls).__new__(cls, *args, **kwargs)
 
     def __init__(self, mth):
         """
-
         :param mth: class or function
         """
+        super(Logging, self).__init__(mth)
         loglevel = ["debug","info","warning","error","critical"]
         self.__loglevel_index_dict = dict(zip(loglevel, [i for i in range(len(loglevel))]))
         self.__logging = logging.getLogger()  # init
         self.__logging.setLevel(logging.INFO)
         # self.__sh = logging.StreamHandler(stream=sys.stdout)
         # self.__sh.setLevel(logging.INFO)
-        self.res = mth
         self.__msg = ""
 
     def setLogLevel(self, level:logging.INFO):
@@ -119,16 +140,20 @@ class Logging:
     def msg_level_dict(self, value):
         return self.__msg_level_dict[value]
 
-
-    def recv(self, msg="", level="info"):
+    def recv(self, msg="", fm="", level="info", old_flag=True):
         """
         接收消息
+        :param old_flag: 是否保留初始格式
         :param msg:
+        :param fm: 输出格式, format + msg
         :param level:debug,info,warning,error,critical
         :return:
         """
+        init_fm = "{} ".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        if not old_flag:
+            init_fm = ""
         self.__level = self.__loglevel_index_dict[level]
-        self.__msg = "{} ".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + msg
+        self.__msg = init_fm + fm + msg
         self.send(self.__msg)
 
     def send(self, msg):
@@ -136,7 +161,6 @@ class Logging:
 
     def __call__(self, *args, **kwargs):
         def wrap(*arg, **kwargs):
-            print(11)
             if IsFunction(self.res) is not None:
                 pass
             else:
@@ -145,13 +169,13 @@ class Logging:
                 return self.res(*arg, **kwargs)
             else:
                 return self.res()
-        return wrap(*args, **kwargs)
+        return self.createModifierClassFun(self, self.res, wrap)
 
 
 if __name__ == "__main__":
     @Logging
-    def b():
-        print(b)
-        print(1)
-    x = b()
-    # print(b)
+    def b(x):
+        print(b.modifier.recv("aaaas"))
+        print(x)
+    x = b(12)
+    print(b.__name__)
