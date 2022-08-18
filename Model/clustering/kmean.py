@@ -8,7 +8,7 @@ import numpy as np
 import math
 import os
 import tqdm as tq
-import logging
+import random
 
 from Model.Model import Model
 from Utils.utils import *
@@ -54,7 +54,7 @@ class KMean(Model):
         """
         # 初始化模型，簇中心初始化
         if self.__init_flag:
-            self.init_cluster_center()
+            self.init_cluster_center(sample)
         log_obj = self.model.modifier
         index_ = 1
         while True:
@@ -77,13 +77,21 @@ class KMean(Model):
             else:
                 self.__OLD_SSE = self.__SSE
                 for i in range(self.__cluster_num):
-                    m = np.mean(sample[np.nonzero(np.array(labels) == i),:], axis=1)
-                    if np.any(np.isnan(m)):
+                    m = sample[np.nonzero(np.array(labels) == i),:]
+                    if m.size == 0:
                         continue
-                    self.__cluster_center[i] = m
-            print(self.__cluster_center)
+                    self.__cluster_center[i] = np.mean(m, axis=1)
             self.history = ("loss", [self.__SSE])
             self.history = ("labels", [labels])
+
+    def checkClusterPoint(self, sample, num):
+        """
+        选取k个点
+        :param sample: 样本
+        :param num: 点数
+        :return:
+        """
+        return [np.reshape(sample[random.randint(0, self.__feature_shape[0] - 1), :], (1, *self.__feature_shape[1:])) for i in range(num)]
 
     @property
     def history(self):
@@ -98,13 +106,14 @@ class KMean(Model):
         else:
             self.__history[v[0]] += v[1]
 
-    def init_cluster_center(self):
+    def init_cluster_center(self, data):
         """
         初始化簇中心
+        :param data:
         :return:
         """
         if self.__init_flag:
-            self.__cluster_center = [np.random.random((1, *self.__feature_shape[1:])) for i in range(self.__cluster_num)]
+            self.__cluster_center = self.checkClusterPoint(data, self.__cluster_num)
         else:
             pass
 
@@ -114,7 +123,7 @@ class KMean(Model):
         :param num:
         :return:
         """
-        np.random.seed(num)
+        random.seed(num)
 
     def loss(self, x1, x2):
         """

@@ -12,4 +12,4 @@ if __name__ == "__main__":
     x = data.values[:, :-1]
     k = KMean()
     h = k.fit(x)
-    print(h)
+    # print(h)
