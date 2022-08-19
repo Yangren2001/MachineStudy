@@ -10,6 +10,7 @@ import pandas as pd
 if __name__ == "__main__":
     data = pd.read_csv("../dataset/iris.csv")
     x = data.values[:, :-1]
+    y = data.values[:, -1]
     k = KMean()
-    h = k.fit(x)
+    h = k.fit(x, y)
     # print(h)

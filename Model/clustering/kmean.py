@@ -32,22 +32,29 @@ class KMean(Model):
         else:
             self.__init_flag = True
 
-    def build(self, feature):
+    def build(self, feature, label):
         """
         构建模型
+        :param label: 标签集
         :param feature: 特征集
         :return:
         """
         if isdata(feature) is not np.ndarray:
             feature = np.array(feature)   # 转换为矩阵
+        if isdata(label) is not list:
+            if isdata(label) is np.ndarray:
+                label = label.tolist()
+            else:
+                label = list(label)
         self.__feature_shape = feature.shape
         # 构建模型逻辑
-        self.model(feature, self.__cluster_num)
+        self.model(feature, label, self.__cluster_num)
 
     @Logging
-    def model(self, sample, cluster_amount=3):
+    def model(self, sample, label, cluster_amount=3):
         """
         model
+        :param label: 标签集
         :param sample: sample dataset
         :param cluster_amount: Model amount
         :return:
@@ -58,7 +65,7 @@ class KMean(Model):
         log_obj = self.model.modifier
         index_ = 1
         while True:
-            labels = []   # 聚类标签集
+            labels = []  # 聚类标签集
             self.__SSE = 0.0
             for i in range(self.__feature_shape[0]):  # 遍历每一个样本
                 min_dist = (np.inf, 0)  # (dist, label)
@@ -69,7 +76,7 @@ class KMean(Model):
                 labels.append(min_dist[1])
                 self.__SSE += min_dist[0]
 
-            log_obj.recv(msg="epoch {}:SSE: {}".format(index_, self.__SSE), fm="", old_flag=True, level="info")
+            log_obj.recv(msg="epoch {}:SSE: {}  ACC:{}".format(index_, self.__SSE, self.countAcc(label, labels)), fm="", old_flag=True, level="info")
             index_ += 1
             # 调整模型
             if self.__SSE >= self.__OLD_SSE:
@@ -106,6 +113,24 @@ class KMean(Model):
         else:
             self.__history[v[0]] += v[1]
 
+    def countAcc(self,true_label, pre_label):
+        """
+        计算准确率
+        :param true_label:
+        :param pre_label:
+        :return:
+        """
+        t_l = len(true_label)
+        try:
+            assert t_l == len(pre_label)
+        except AssertionError:
+            raise ValueError("样本标签与真实标签长度不一致{}和{}".format(t_l, len(pre_label)))
+        s = 0
+        for i in range(t_l):
+            if true_label[i] == pre_label[i]:
+                s += 1
+        return s / t_l
+
     def init_cluster_center(self, data):
         """
         初始化簇中心
@@ -134,6 +159,14 @@ class KMean(Model):
         """
         return np.sqrt(np.sum(np.square(np.subtract(x1, x2))))
 
-    def fit(self, x):
-        self.build(x)
+    def fit(self, x, y):
+        self.build(x, y)
         return self.__history
+
+    def predict(self, x):
+        """
+        预测
+        :param x:
+        :return:
+        """
+        pass
