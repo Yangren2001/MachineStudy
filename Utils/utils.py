@@ -44,6 +44,18 @@ def GetDictIndex(d: dict, values):
             return kv[0]
     raise ValueError("values '{}' not exists dict".format(values))
 
+def AsArray(data):
+    """
+    如果数据不是一个数组，那么转化为数组
+    :param data:
+    :return:
+    """
+    try:
+        if isdata(data) is not np.ndarray:
+            return np.array(data)  # 转换为矩阵
+    except Exception:
+        return None
+
 
 
 if __name__ == "__main__":

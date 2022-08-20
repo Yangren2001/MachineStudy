@@ -39,8 +39,9 @@ class KMean(Model):
         :param feature: 特征集
         :return:
         """
-        if isdata(feature) is not np.ndarray:
-            feature = np.array(feature)   # 转换为矩阵
+        feature = AsArray(feature)
+        if feature is None:
+            raise TypeError("feature类型应为序列，错误！")
         if isdata(label) is not list:
             if isdata(label) is np.ndarray:
                 label = label.tolist()
@@ -131,6 +132,7 @@ class KMean(Model):
                 s += 1
         return s / t_l
 
+
     def init_cluster_center(self, data):
         """
         初始化簇中心
@@ -169,4 +171,15 @@ class KMean(Model):
         :param x:
         :return:
         """
-        pass
+        label = []
+        feature = AsArray(x)
+        if feature is None:
+            raise TypeError("x类型应为序列，错误！")
+        for i in range(x.shape[0]):
+            min_dist = (np.inf, 0)
+            for j in range(self.__cluster_num):
+                dist = self.loss(x[i, :], self.__cluster_center[j])
+                if dist < min_dist[0]:
+                    min_dist = (dist, j)
+            label.append(min_dist[1])
+        return label
