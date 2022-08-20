@@ -53,6 +53,8 @@ def AsArray(data):
     try:
         if isdata(data) is not np.ndarray:
             return np.array(data)  # 转换为矩阵
+        else:
+            return data
     except Exception:
         return None
 
