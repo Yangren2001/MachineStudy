@@ -127,9 +127,23 @@ class KMean(Model):
         except AssertionError:
             raise ValueError("样本标签与真实标签长度不一致{}和{}".format(t_l, len(pre_label)))
         s = 0
-        for i in range(t_l):
-            if true_label[i] == pre_label[i]:
-                s += 1
+        r = {}
+        # 初始化字典
+        index = [[0, 0, 0] for i in range(self.__cluster_num)]
+        for j in range(t_l):
+            index[int(true_label[j])][int(pre_label[j])] += 1
+        for i in range(self.__cluster_num):
+            r[i] = index[i].index(max(index[i]))
+
+        if len(set(r.values())) < self.__cluster_num:
+            for i in range(self.__cluster_num):
+                count = list(r.values()).count(i)
+                if count > 1:
+                    pass        # 处理映射重复问题
+        for j in range(t_l):
+            if r[true_label[j]] == pre_label[j]:
+                s += 1.0
+        print(r, pre_label)
         return s / t_l
 
 

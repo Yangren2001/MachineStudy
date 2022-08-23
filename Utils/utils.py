@@ -32,17 +32,25 @@ def IsFunction(obj:object):
     else:
         return None
 
-def GetDictIndex(d: dict, values):
+def GetDictIndex(d: dict, values, flag=True):
     """
-    获取字典索引
+    获取值的字典索引
     :param d: 字典
     :param values:值
+    :param flag:是否只返回一个
     :return:
     """
+    index = []
     for kv in d.items():
         if values in kv:
-            return kv[0]
+            index.append(kv[0])
+    if len(index) > 0:
+        if flag:
+            return index[0]
+        else:
+            return index
     raise ValueError("values '{}' not exists dict".format(values))
+
 
 def AsArray(data):
     """
